@@ -1,0 +1,90 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Now Playing on Spotify",
+  "description": "What's playing on your Spotify right now. The card hides when nothing plays.",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "default": "",
+      "title": "Client ID",
+      "description": "From your app at developer.spotify.com (Dashboard → your app → Settings). The module's README shows how to make one."
+    },
+    "auth_response": {
+      "type": "string",
+      "format": "password",
+      "default": "",
+      "title": "Login Address",
+      "description": "After logging in through the address on the card, paste the address your browser landed on (http://127.0.0.1:8888/callback?code=…) here and save."
+    },
+    "interval": {
+      "type": "integer",
+      "default": 10,
+      "minimum": 5,
+      "title": "Update Interval (Seconds)",
+      "description": "How often to ask Spotify what's playing."
+    },
+    "show_header": {
+      "type": "boolean",
+      "default": true,
+      "title": "Show Header",
+      "description": "Show or hide the module's title."
+    },
+    "show_title": {
+      "type": "boolean",
+      "default": true,
+      "title": "Show Track",
+      "description": "The track's (or episode's) name."
+    },
+    "show_artist": {
+      "type": "boolean",
+      "default": true,
+      "title": "Show Artist",
+      "description": "The artist (or the podcast's name)."
+    },
+    "show_cover": {
+      "type": "boolean",
+      "default": true,
+      "title": "Show Cover",
+      "description": "The album cover beside the track."
+    },
+    "cover_style": {
+      "type": "string",
+      "default": "gray",
+      "enum": [
+        "gray",
+        "color"
+      ],
+      "enum_titles": [
+        "Black and white",
+        "Colour"
+      ],
+      "title": "Cover",
+      "description": "Black and white is calmer through the glass."
+    },
+    "show_progress": {
+      "type": "boolean",
+      "default": true,
+      "title": "Show Progress",
+      "description": "A bar with how far into the track it is."
+    },
+    "show_album": {
+      "type": "boolean",
+      "default": true,
+      "title": "Show Album",
+      "description": "The album's name under the artist."
+    },
+    "show_playlist": {
+      "type": "boolean",
+      "default": true,
+      "title": "Show Playlist",
+      "description": "The playlist it plays from (or Liked Songs), when it plays from one."
+    },
+    "show_device": {
+      "type": "boolean",
+      "default": true,
+      "title": "Show Device",
+      "description": "Where it plays, e.g. a speaker or a phone."
+    }
+  }
+}

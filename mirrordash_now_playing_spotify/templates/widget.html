@@ -1,0 +1,81 @@
+<!-- Built from the component library at http://localhost:8000/design -->
+<style>
+    .now-playing { display: flex; align-items: center; gap: var(--internal-padding, 16px); min-width: 0; }
+    .now-playing__cover {
+        width: 5.5em; height: 5.5em; flex: none; object-fit: cover; border-radius: 4px;
+        border: 1px solid var(--color-dimmed-charcoal);
+    }
+    .now-playing__cover--gray { filter: grayscale(1) brightness(0.85); }
+    .now-playing__cover--empty { display: flex; align-items: center; justify-content: center; color: var(--color-dimmed-charcoal); }
+    .now-playing__text { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+    .now-playing__title {
+        font-size: 24px; font-weight: 500; line-height: 1.2; color: var(--color-high-contrast);
+        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .now-playing__line { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .now-playing__device { display: flex; align-items: center; gap: 6px; min-width: 0; }
+    .now-playing__device svg { width: 14px; height: 14px; flex: none; }
+    .module-message span { overflow-wrap: anywhere; }  /* the login address is one long word */
+</style>
+
+<div class="flex-column">
+    {% if show_header %}
+    <h2 class="module-header">{{ translations.get("title", "Now playing") }}</h2>
+    {% endif %}
+    {% if track %}
+    <div class="now-playing">
+        {% if show.cover %}
+        {% if track.cover %}
+        <img class="now-playing__cover{% if not cover_in_color %} now-playing__cover--gray{% endif %}" src="{{ track.cover }}" alt="">
+        {% else %}
+        <div class="now-playing__cover now-playing__cover--empty"><i data-lucide="music"></i></div>
+        {% endif %}
+        {% endif %}
+        <div class="now-playing__text">
+            {# the first line shown is the big white one, whichever it is #}
+            {% set lines = [] %}
+            {% if show.title %}{% set _ = lines.append(track.title) %}{% endif %}
+            {% if show.artist %}{% set _ = lines.append(track.artist) %}{% endif %}
+            {% if show.album and track.album %}{% set _ = lines.append(track.album) %}{% endif %}
+            {% for line in lines %}
+            <span class="{{ 'now-playing__title' if loop.first else 'now-playing__line ' ~ ('body-base text-secondary' if loop.index == 2 else 'body-sm text-dimmed') }}">{{ line }}</span>
+            {% endfor %}
+            {% if show.playlist and track.playlist %}
+            <span class="now-playing__device body-sm text-dimmed"><i data-lucide="list-music"></i><span class="now-playing__line">{{ track.playlist }}</span></span>
+            {% endif %}
+            {% if show.device and track.device %}
+            <span class="now-playing__device body-sm text-dimmed"><i data-lucide="speaker"></i><span class="now-playing__line">{{ track.device }}</span></span>
+            {% endif %}
+        </div>
+    </div>
+    {% if show.progress and track.duration_ms %}
+    <div class="gauge-bar" data-started="{{ track.started or '' }}" data-progress="{{ track.progress_ms }}" data-duration="{{ track.duration_ms }}">
+        <div class="gauge-bar__track"><div class="gauge-bar__fill" style="width: {{ (100 * track.progress_ms / track.duration_ms) | round(1) }}%;"></div></div>
+        <div class="gauge-bar__label-row"><span class="elapsed"></span><span class="total"></span></div>
+    </div>
+    {% endif %}
+    {% endif %}
+    {% if message %}
+    <div class="module-message"><i data-lucide="{{ icon }}"></i><span>{{ message }}</span></div>
+    {% endif %}
+</div>
+
+<script>
+    // The bar steps once a second between updates, from when the track started, and stops at its end
+    clearInterval(root._timer);
+    const bar = root.querySelector('.gauge-bar');
+    if (bar) {
+        const duration = Number(bar.dataset.duration);
+        const started = Number(bar.dataset.started) || Date.now() - Number(bar.dataset.progress);
+        const clock = ms => { const s = Math.floor(ms / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+        const tick = () => {
+            const elapsed = Math.min(Math.max(Date.now() - started, 0), duration);
+            bar.querySelector('.gauge-bar__fill').style.width = `${100 * elapsed / duration}%`;
+            bar.querySelector('.elapsed').textContent = clock(elapsed);
+            bar.querySelector('.total').textContent = clock(duration);
+            if (elapsed >= duration) clearInterval(root._timer);
+        };
+        tick();
+        root._timer = setInterval(tick, 1000);
+    }
+</script>

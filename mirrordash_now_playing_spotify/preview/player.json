@@ -1,0 +1,25 @@
+{
+  "is_playing": true,
+  "progress_ms": 83000,
+  "currently_playing_type": "track",
+  "device": {
+    "name": "Living Room"
+  },
+  "item": {
+    "name": "Northern Lights",
+    "duration_ms": 225000,
+    "artists": [
+      {
+        "name": "The Quiet Hours"
+      }
+    ],
+    "album": {
+      "name": "Long Winter",
+      "images": []
+    }
+  },
+  "context": {
+    "type": "playlist",
+    "uri": "spotify:playlist:preview123"
+  }
+}

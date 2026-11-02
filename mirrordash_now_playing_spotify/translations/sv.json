@@ -1,0 +1,9 @@
+{
+  "title": "Spelas nu",
+  "missing_client_id": "Exempeldata. Lägg till din Spotify-apps Client ID i modulens inställningar.",
+  "log_in": "Logga in på Spotify: öppna {url} och klistra in adressen du hamnar på i modulens inställningar.",
+  "log_in_again": "Spotify vill att du loggar in igen: öppna {url} och klistra in adressen du hamnar på i modulens inställningar.",
+  "offline": "Når inte Spotify.",
+  "fetch_failed": "Kunde inte uppdatera.",
+  "liked_songs": "Gillade låtar"
+}

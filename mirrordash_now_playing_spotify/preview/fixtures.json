@@ -1,0 +1,8 @@
+{
+  "captured": "2026-11-02",
+  "answers": {
+    "accounts.spotify.com/api/token": "token.json",
+    "api.spotify.com/v1/me/player": "player.json",
+    "api.spotify.com/v1/playlists/*": "playlist.json"
+  }
+}

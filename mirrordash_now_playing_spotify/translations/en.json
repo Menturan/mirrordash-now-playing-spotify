@@ -1,0 +1,9 @@
+{
+  "title": "Now playing",
+  "missing_client_id": "Example data. Add your Spotify app's Client ID in the module's settings.",
+  "log_in": "Log in to Spotify: open {url} and paste the address you land on into the module's settings.",
+  "log_in_again": "Spotify wants you to log in again: open {url} and paste the address you land on into the module's settings.",
+  "offline": "Can't reach Spotify.",
+  "fetch_failed": "Couldn't update.",
+  "liked_songs": "Liked Songs"
+}
