@@ -9,7 +9,7 @@ The card hides when nothing plays (stopped or paused).
 ## Installation
 
 On the mirror's admin page, open **Modules**: the module is in the list, install it with one click.
-Or paste `git+https://github.com/Menturan/mirrordash-now-playing-spotify.git` under **Modules → Install a Module from GitHub**.
+Or paste `git+https://github.com/Menturan/mirrordash-now-playing-spotify.git` under **Modules → Add modules → Install from a Git URL or folder**.
 
 ## Connect it to your Spotify (once)
 
