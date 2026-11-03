@@ -76,6 +76,7 @@ class NowPlayingSpotifyModule:
         self.access_token, self.expires_at = None, 0.0
         # ponytail: a playlist's name is kept until the module restarts, so a renamed one shows its old name till then
         self.playlists = {}  # playlist id -> its name, "" for one Spotify won't show this app
+        self.busy_until, self.last_card = 0.0, ""  # after a 429: no calls till then, the card as it was
         self.router = APIRouter()
         self.router.get("/login")(self.login)
 
@@ -131,10 +132,13 @@ class NowPlayingSpotifyModule:
             key, text = self.problem
             url = f"http://mirrordash.local{self.api_path}/login"
             return self.card(None, self.translate(key, text).format(url=url), "log-in" if key != "offline" else "cloud-off")
+        if time.monotonic() < self.busy_until:
+            return self.last_card
         # fetch, not fetch_json: "nothing plays" is an empty 204 answer, which fetch_json would call invalid
         reply = await self.fetch(PLAYER_URL, headers={"Authorization": f"Bearer {self.access_token}"},
                                  params={"additional_types": "episode"})
         raw, error = reply
+        self.wait_if_busy(reply)
         if error == "rejected":  # the access token ran out early: a new one next time
             self.access_token = None
         try:
@@ -151,9 +155,14 @@ class NowPlayingSpotifyModule:
         if error and error != "rejected":
             message = self.translate("offline" if error == "offline" else "fetch_failed",
                                      "Can't reach Spotify." if error == "offline" else "Couldn't update.")
-        if not track and not message:
-            return ""  # nothing plays: no card
-        return self.card(track, message, "cloud-off")
+        self.last_card = self.card(track, message, "cloud-off") if track or message else ""  # nothing plays: no card
+        return self.last_card
+
+    def wait_if_busy(self, answer) -> None:
+        """A 429: no calls to Spotify for as long as its Retry-After says (seconds; 30 if missing or a date)."""
+        if answer[1] == "http 429":
+            after = answer.headers.get("Retry-After", "")
+            self.busy_until = time.monotonic() + (int(after) if after.isdigit() else 30)
 
     async def playlist_name(self, track: dict) -> str:
         """The playlist it plays from: GET /me/player gives only its id. Spotify's own playlists (Discover
@@ -163,9 +172,11 @@ class NowPlayingSpotifyModule:
         playlist_id = track["playlist_id"]
         if not playlist_id or playlist_id in self.playlists:
             return self.playlists.get(playlist_id, "")
-        answer, error = await self.fetch_json(f"https://api.spotify.com/v1/playlists/{playlist_id}",
-                                              headers={"Authorization": f"Bearer {self.access_token}"},
-                                              params={"fields": "name"})
+        reply = await self.fetch_json(f"https://api.spotify.com/v1/playlists/{playlist_id}",
+                                      headers={"Authorization": f"Bearer {self.access_token}"},
+                                      params={"fields": "name"})
+        answer, error = reply
+        self.wait_if_busy(reply)
         name = "" if error == "http 404" else (answer or {}).get("name", "")
         if error in (None, "http 404"):  # a 404 stays one: asked once a start, not every round (and logged)
             self.playlists[playlist_id] = name

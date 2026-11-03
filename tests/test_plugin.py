@@ -1,5 +1,6 @@
 import json
 from datetime import datetime
+from email.message import Message
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -14,6 +15,7 @@ from mirrordash_now_playing_spotify.plugin import (
 class Answer(tuple):
     """What the mirror's fetch/fetch_json give: (data, error), and .fetched_at, when the data was downloaded."""
     fetched_at = datetime(2026, 1, 1, 9, 30)
+    headers = Message()  # what the mirror gives: no headers, read case-insensitively
 
 
 PLAYING = {
@@ -211,3 +213,28 @@ async def test_a_playlist_name_is_asked_again_after_a_network_error(tmp_path):
     assert (await module.render())["track"]["playlist"] == ""
     assert (await module.render())["track"]["playlist"] == "Winter"
     assert (await module.render())["track"]["playlist"] == "Winter" and module.fetch_json.call_count == 3
+
+
+@pytest.mark.asyncio
+async def test_a_429_stops_the_calls_for_as_long_as_retry_after_says(tmp_path):
+    module = make_module(tmp_path, state={"refresh_token": "r"})
+    shown = await module.render()
+    busy = Answer((json.dumps(PLAYING).encode(), "http 429"))
+    busy.headers = {"Retry-After": "120"}
+    module.fetch.return_value = busy
+    shown = await module.render()
+    assert shown["track"]["title"] == "Song" and shown["message"]  # the last answer, and that it couldn't update
+    calls = module.fetch.call_count
+    assert await module.render() == shown and module.fetch.call_count == calls  # waiting: no call, same card
+    module.busy_until = 0
+    await module.render()
+    assert module.fetch.call_count == calls + 1
+
+
+def test_a_retry_after_that_is_a_date_waits_30_seconds(tmp_path):
+    import time
+    module = make_module(tmp_path)
+    busy = Answer((None, "http 429"))
+    busy.headers = {"Retry-After": "Wed, 21 Oct 2026 07:28:00 GMT"}
+    module.wait_if_busy(busy)
+    assert 25 < module.busy_until - time.monotonic() <= 30
