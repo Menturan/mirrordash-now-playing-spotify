@@ -72,12 +72,29 @@ async def test_without_a_client_id_it_shows_example_data(tmp_path):
 
 
 @pytest.mark.asyncio
-async def test_not_logged_in_shows_the_login_address(tmp_path):
+async def test_not_logged_in_shows_the_login_address_and_its_qr_code(tmp_path, monkeypatch):
+    from mirrordash_now_playing_spotify import plugin
+    monkeypatch.setattr(plugin, "mirror_address", lambda: "192.168.1.50")
     module = make_module(tmp_path)
     shown = await module.render()
     assert shown["track"] is None
-    assert "http://mirrordash.local/api/modules/spotify/login" in shown["message"]
+    assert "http://192.168.1.50/api/modules/spotify/login" in shown["message"]
+    assert shown["qr"].startswith("<svg") and 'fill="#fff"' in shown["qr"]  # dark on light, for any camera
     module.fetch_json.assert_not_called()
+
+
+def test_the_mirrors_address_is_an_ip_or_its_name():
+    from mirrordash_now_playing_spotify.plugin import mirror_address
+    address = mirror_address()
+    assert address == "mirrordash.local" or address.count(".") == 3
+
+
+@pytest.mark.asyncio
+async def test_the_admin_preview_draws_the_sample_track_not_the_login(tmp_path):
+    module = make_module(tmp_path, preview=True)  # no login saved, as in the preview's empty data_dir
+    shown = await module.render()
+    assert shown["track"]["title"] == "Song" and shown["message"] is None and shown["qr"] is None
+    module.fetch_json.assert_not_called()  # no token asked for
 
 
 @pytest.mark.asyncio

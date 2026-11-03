@@ -22,8 +22,8 @@ rule for apps in development mode, which allow up to 5 users).
    **Web API**. Accept the terms and **Save**.
 3. Open the app's **Settings** and copy its **Client ID**. (No Client Secret is needed.)
 4. On the mirror's admin page, open the module's settings, paste it into **Client ID** and save.
-5. The card now shows a login address, `http://mirrordash.local/api/modules/<instance>/login`. Open it on a phone
-   or computer on the same network, log in to Spotify and accept.
+5. The card now shows a QR code and its login address (`http://<the mirror's address>/api/modules/<instance>/login`).
+   Scan it with a phone on the same network (or type the address), log in to Spotify and accept.
 6. Your browser then lands on `http://127.0.0.1:8888/callback?code=…` and says it can't open the page. That is
    expected: copy that whole address from the address bar, paste it into **Login Address** in the module's settings
    and save.

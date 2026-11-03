@@ -4,9 +4,11 @@ import json
 import logging
 import os
 import secrets
+import socket
 import time
 import urllib.parse
 
+import segno
 from fastapi import APIRouter  # on the mirror already: not in pyproject's dependencies
 from fastapi.responses import RedirectResponse
 
@@ -35,6 +37,22 @@ def auth_code(pasted: str) -> str:
     if "?" in pasted or "code=" in pasted:
         return urllib.parse.parse_qs(urllib.parse.urlsplit(pasted).query or pasted).get("code", [""])[0]
     return pasted
+
+
+def mirror_address() -> str:
+    """The mirror's address on the home network, for the phone that scans the login code: not every phone finds
+    mirrordash.local. Connecting a UDP socket sends nothing, it only picks the way out (and so the address)."""
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+        try:
+            s.connect(("192.0.2.1", 80))  # TEST-NET-1: never reached, any address outside works
+            return s.getsockname()[0]
+        except OSError:
+            return "mirrordash.local"  # no network yet
+
+
+def qr_svg(text: str) -> str:
+    """A QR code as an inline SVG that scales with its box, dark on light: every phone's camera reads that."""
+    return segno.make(text, error="m").svg_inline(dark="#000", light="#fff", border=2, omitsize=True)
 
 
 def parse(player: dict | None) -> dict | None:
@@ -71,6 +89,7 @@ class NowPlayingSpotifyModule:
         self.show = {part: config.get(f"show_{part}", True) for part in ("cover", "title", "artist", "album", "playlist", "device", "progress")}
         self.cover_in_color = config.get("cover_style", "gray") == "color"
         self.api_path = config.get("api_path", "")
+        self.preview = config.get("preview", False)  # the admin page's preview: its sample answers, no login
         self.state_file = os.path.join(config["data_dir"], "token.json") if config.get("data_dir") else None
         self.state = self.load_state()  # refresh_token, the code it came from, the PKCE verifier of the last login
         self.access_token, self.expires_at = None, 0.0
@@ -94,6 +113,9 @@ class NowPlayingSpotifyModule:
 
     async def token(self) -> str | None:
         """A valid access token, or None with self.problem saying what the owner should do."""
+        if self.preview:  # fetch answers from preview/ there, whatever the token
+            self.access_token = "preview"
+            return self.access_token
         if self.access_token and time.monotonic() < self.expires_at:
             return self.access_token
         new_code = self.code and self.code != self.state.get("code") and self.state.get("verifier")
@@ -130,8 +152,10 @@ class NowPlayingSpotifyModule:
             return self.card(track, self.translate("missing_client_id", "Example data. Add your Spotify app's Client ID in the module's settings."), "key-round")
         if not await self.token():
             key, text = self.problem
-            url = f"http://mirrordash.local{self.api_path}/login"
-            return self.card(None, self.translate(key, text).format(url=url), "log-in" if key != "offline" else "cloud-off")
+            if key == "offline":
+                return self.card(None, self.translate(key, text), "cloud-off")
+            url = f"http://{mirror_address()}{self.api_path}/login"
+            return self.card(None, self.translate(key, text).format(url=url), "log-in", qr=qr_svg(url))
         if time.monotonic() < self.busy_until:
             return self.last_card
         # fetch, not fetch_json: "nothing plays" is an empty 204 answer, which fetch_json would call invalid
@@ -182,8 +206,8 @@ class NowPlayingSpotifyModule:
             self.playlists[playlist_id] = name
         return name
 
-    def card(self, track, message, icon) -> str:
-        return self.render_template("widget.html", track=track, message=message, icon=icon, show=self.show,
+    def card(self, track, message, icon, qr=None) -> str:
+        return self.render_template("widget.html", track=track, message=message, icon=icon, qr=qr, show=self.show,
                                     show_header=self.show_header,
                                     cover_in_color=self.cover_in_color)
 

@@ -16,6 +16,8 @@
     .now-playing__device { display: flex; align-items: center; gap: 6px; min-width: 0; }
     .now-playing__device svg { width: 14px; height: 14px; flex: none; }
     .module-message span { overflow-wrap: anywhere; }  /* the login address is one long word */
+    .login-qr { width: 9em; max-width: 100%; aspect-ratio: 1; }
+    .login-qr svg { display: block; width: 100%; height: 100%; border-radius: 4px; }
 </style>
 
 <div class="flex-column">
@@ -54,6 +56,9 @@
         <div class="gauge-bar__label-row"><span class="elapsed"></span><span class="total"></span></div>
     </div>
     {% endif %}
+    {% endif %}
+    {% if qr %}
+    <div class="login-qr">{{ qr | safe }}</div>
     {% endif %}
     {% if message %}
     <div class="module-message"><i data-lucide="{{ icon }}"></i><span>{{ message }}</span></div>

@@ -10,7 +10,9 @@ authors = [
 ]
 # The mirror provides the rest (rendering, fetch_json/fetch, translations, fastapi); add only what else
 # plugin.py imports
-dependencies = []
+dependencies = [
+    "segno>=1.6.6",
+]
 
 [project.entry-points."mirrordash.modules"]
 mirrordash_now_playing_spotify = "mirrordash_now_playing_spotify.plugin:NowPlayingSpotifyModule"
