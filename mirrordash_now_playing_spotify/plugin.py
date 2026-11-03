@@ -74,6 +74,8 @@ class NowPlayingSpotifyModule:
         self.state_file = os.path.join(config["data_dir"], "token.json") if config.get("data_dir") else None
         self.state = self.load_state()  # refresh_token, the code it came from, the PKCE verifier of the last login
         self.access_token, self.expires_at = None, 0.0
+        # ponytail: a playlist's name is kept until the module restarts, so a renamed one shows its old name till then
+        self.playlists = {}  # playlist id -> its name, "" for one Spotify won't show this app
         self.router = APIRouter()
         self.router.get("/login")(self.login)
 
@@ -158,12 +160,16 @@ class NowPlayingSpotifyModule:
         Weekly, …) answer 404 to apps like this one: then no line."""
         if track["context"] == "collection":
             return self.translate("liked_songs", "Liked Songs")
-        if not track["playlist_id"]:
-            return ""
-        answer, _ = await self.fetch_json(f"https://api.spotify.com/v1/playlists/{track['playlist_id']}",
+        playlist_id = track["playlist_id"]
+        if not playlist_id or playlist_id in self.playlists:
+            return self.playlists.get(playlist_id, "")
+        answer, error = await self.fetch_json(f"https://api.spotify.com/v1/playlists/{playlist_id}",
                                               headers={"Authorization": f"Bearer {self.access_token}"},
-                                              params={"fields": "name"}, max_age=3600)
-        return (answer or {}).get("name", "")
+                                              params={"fields": "name"})
+        name = "" if error == "http 404" else (answer or {}).get("name", "")
+        if error in (None, "http 404"):  # a 404 stays one: asked once a start, not every round (and logged)
+            self.playlists[playlist_id] = name
+        return name
 
     def card(self, track, message, icon) -> str:
         return self.render_template("widget.html", track=track, message=message, icon=icon, show=self.show,

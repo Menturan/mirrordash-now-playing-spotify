@@ -198,3 +198,16 @@ async def test_liked_songs_an_album_and_spotifys_own_playlists(tmp_path):
     module.fetch.return_value = Answer((json.dumps({**PLAYING, "context": {"type": "playlist", "uri": "spotify:playlist:37i9"}}).encode(), None))
     module.fetch_json.return_value = Answer((None, "http 404"))  # Discover Weekly and friends: not for apps
     assert (await module.render())["track"]["playlist"] == ""
+    calls = module.fetch_json.call_count
+    await module.render()
+    assert module.fetch_json.call_count == calls  # asked once, not every round
+
+
+@pytest.mark.asyncio
+async def test_a_playlist_name_is_asked_again_after_a_network_error(tmp_path):
+    from_playlist = {**PLAYING, "context": {"type": "playlist", "uri": "spotify:playlist:abc"}}
+    module = make_module(tmp_path, state={"refresh_token": "r"}, player=from_playlist)
+    module.fetch_json.side_effect = [Answer((TOKEN, None)), Answer((None, "offline")), Answer(({"name": "Winter"}, None))]
+    assert (await module.render())["track"]["playlist"] == ""
+    assert (await module.render())["track"]["playlist"] == "Winter"
+    assert (await module.render())["track"]["playlist"] == "Winter" and module.fetch_json.call_count == 3
