@@ -3,6 +3,7 @@ import hashlib
 import json
 import logging
 import os
+import re
 import secrets
 import socket
 import time
@@ -20,6 +21,8 @@ PLAYER_URL = "https://api.spotify.com/v1/me/player"
 # Spotify allows http only for a loopback address, so the mirror can't take the answer itself: the owner's
 # browser lands on this address (which doesn't load) and the owner pastes it into the settings.
 REDIRECT_URI = "http://127.0.0.1:8888/callback"
+SPOTIFY_ID = re.compile(r"[A-Za-z0-9]{1,64}")  # a playlist id goes into a URL path only if it is one
+MAX_WAIT = 3600  # seconds at most that a 429's Retry-After stops the calls
 SCOPE = "user-read-currently-playing user-read-playback-state playlist-read-private playlist-read-collaborative"
 
 # Shown, marked as example data, until a Client ID is set: an answer like Spotify's
@@ -186,7 +189,7 @@ class NowPlayingSpotifyModule:
         """A 429: no calls to Spotify for as long as its Retry-After says (seconds; 30 if missing or a date)."""
         if answer[1] == "http 429":
             after = answer.headers.get("Retry-After", "")
-            self.busy_until = time.monotonic() + (int(after) if after.isdigit() else 30)
+            self.busy_until = time.monotonic() + min(int(after) if after.isdigit() else 30, MAX_WAIT)
 
     async def playlist_name(self, track: dict) -> str:
         """The playlist it plays from: GET /me/player gives only its id. Spotify's own playlists (Discover
@@ -194,7 +197,7 @@ class NowPlayingSpotifyModule:
         if track["context"] == "collection":
             return self.translate("liked_songs", "Liked Songs")
         playlist_id = track["playlist_id"]
-        if not playlist_id or playlist_id in self.playlists:
+        if not SPOTIFY_ID.fullmatch(playlist_id) or playlist_id in self.playlists:
             return self.playlists.get(playlist_id, "")
         reply = await self.fetch_json(f"https://api.spotify.com/v1/playlists/{playlist_id}",
                                       headers={"Authorization": f"Bearer {self.access_token}"},

@@ -11,7 +11,7 @@ authors = [
 # The mirror provides the rest (rendering, fetch_json/fetch, translations, fastapi); add only what else
 # plugin.py imports
 dependencies = [
-    "segno>=1.6.6",
+    "segno~=1.6.6",
 ]
 
 [project.entry-points."mirrordash.modules"]

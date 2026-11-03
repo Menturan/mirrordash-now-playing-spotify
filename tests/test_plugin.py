@@ -248,6 +248,23 @@ async def test_a_429_stops_the_calls_for_as_long_as_retry_after_says(tmp_path):
     assert module.fetch.call_count == calls + 1
 
 
+def test_a_retry_after_is_capped_at_an_hour(tmp_path):
+    import time
+    module = make_module(tmp_path)
+    busy = Answer((None, "http 429"))
+    busy.headers = {"Retry-After": "999999999"}
+    module.wait_if_busy(busy)
+    assert module.busy_until - time.monotonic() <= 3600
+
+
+@pytest.mark.asyncio
+async def test_a_playlist_id_that_isnt_one_never_reaches_a_url(tmp_path):
+    odd = {**PLAYING, "context": {"type": "playlist", "uri": "spotify:playlist:../../me?x=1"}}
+    module = make_module(tmp_path, state={"refresh_token": "r"}, player=odd)
+    assert (await module.render())["track"]["playlist"] == ""
+    assert module.fetch_json.call_count == 1  # the token only, no playlist call
+
+
 def test_a_retry_after_that_is_a_date_waits_30_seconds(tmp_path):
     import time
     module = make_module(tmp_path)
