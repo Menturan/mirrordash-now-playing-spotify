@@ -8,21 +8,16 @@
       "type": "string",
       "default": "",
       "title": "Client ID",
-      "description": "From your app at developer.spotify.com (Dashboard → your app → Settings). The module's README shows how to make one."
+      "description": "From your app at developer.spotify.com (Dashboard → your app → Settings). The module's README shows how to make one.",
+      "group": "Spotify Login"
     },
     "auth_response": {
       "type": "string",
       "format": "password",
       "default": "",
       "title": "Login Address",
-      "description": "After logging in through the address on the card, paste the address your browser landed on (http://127.0.0.1:8888/callback?code=…) here and save."
-    },
-    "interval": {
-      "type": "integer",
-      "default": 10,
-      "minimum": 5,
-      "title": "Update Interval (Seconds)",
-      "description": "How often to ask Spotify what's playing."
+      "description": "After logging in through the address on the card, paste the address your browser landed on (http://127.0.0.1:8888/callback?code=…) here and save.",
+      "group": "Spotify Login"
     },
     "show_header": {
       "type": "boolean",
@@ -60,7 +55,12 @@
         "Colour"
       ],
       "title": "Cover",
-      "description": "Black and white is calmer through the glass."
+      "description": "Black and white is calmer through the glass.",
+      "show_if": {
+        "show_cover": [
+          true
+        ]
+      }
     },
     "show_progress": {
       "type": "boolean",
@@ -85,6 +85,14 @@
       "default": true,
       "title": "Show Device",
       "description": "Where it plays, e.g. a speaker or a phone."
+    },
+    "interval": {
+      "type": "integer",
+      "default": 10,
+      "minimum": 5,
+      "title": "Update Interval (Seconds)",
+      "description": "How often to ask Spotify what's playing.",
+      "group": "Advanced"
     }
   }
 }
