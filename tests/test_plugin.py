@@ -1,6 +1,7 @@
 import json
 from datetime import datetime
 from email.message import Message
+from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -272,3 +273,48 @@ def test_a_retry_after_that_is_a_date_waits_30_seconds(tmp_path):
     busy.headers = {"Retry-After": "Wed, 21 Oct 2026 07:28:00 GMT"}
     module.wait_if_busy(busy)
     assert 25 < module.busy_until - time.monotonic() <= 30
+
+
+# ── Messages ──
+
+def playing(title, artist="A", is_playing=True):
+    return {**PLAYING, "is_playing": is_playing, "item": {**PLAYING["item"], "name": title, "artists": [{"name": artist}]}}
+
+
+async def play(module, player):
+    module.fetch.return_value = Answer((json.dumps(player).encode() if player else b"", None))
+    await module.render()
+
+
+@pytest.mark.asyncio
+async def test_a_new_track_sends_a_heads_up_but_not_the_one_playing_at_the_start_or_the_same_one_again(tmp_path):
+    bus = MagicMock()
+    module = make_module(tmp_path, state={"refresh_token": "r"}, heads_up=True, event_bus=bus)
+    await module.render()  # "Song" is already playing at the start
+    await module.render()
+    bus.publish.assert_not_called()
+    await play(module, playing("Next", "Band"))
+    bus.publish.assert_called_once_with("mirrordash_now_playing_spotify.heads_up", {"text": "Next – Band"}, public=True)
+    await play(module, playing("Next", "Band"))  # still playing
+    await play(module, playing("Next", "Band", is_playing=False))  # paused...
+    await play(module, None)  # ...or nothing plays
+    await play(module, playing("Next", "Band"))  # ...and resumed
+    assert bus.publish.call_count == 1
+    await play(module, playing("Third", "Band"))
+    assert bus.publish.call_count == 2
+
+
+@pytest.mark.asyncio
+async def test_a_track_after_nothing_played_at_the_start_is_new_and_it_is_off_by_default(tmp_path):
+    bus = MagicMock()
+    module = make_module(tmp_path, state={"refresh_token": "r"}, player=None, heads_up=True, event_bus=bus)
+    await module.render()  # nothing plays
+    await play(module, PLAYING)
+    bus.publish.assert_called_once()
+    off = make_module(tmp_path, state={"refresh_token": "r"}, player=None, event_bus=bus)  # setting not given: off
+    await off.render()
+    await play(off, PLAYING)
+    assert bus.publish.call_count == 1
+    await play(make_module(tmp_path, heads_up=True), PLAYING)  # no event bus (a test): no error
+    schema = json.loads((Path(__file__).parent.parent / "mirrordash_now_playing_spotify" / "config_schema.json").read_text())
+    assert schema["properties"]["heads_up"]["default"] is False

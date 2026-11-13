@@ -101,6 +101,10 @@ class NowPlayingSpotifyModule:
         self.busy_until, self.last_card = 0.0, ""  # after a 429: no calls till then, the card as it was
         self.router = APIRouter()
         self.router.get("/login")(self.login)
+        self.event_bus = config.get("event_bus")  # not there in a test
+        self.heads_up = config.get("heads_up", False)
+        self.last_track = None  # (title, artist) of the track last seen playing, kept while paused
+        self.polled = False  # has Spotify answered since the start? what plays then is not "new"
 
     # ── Logging in (Authorization Code with PKCE: no client secret) ──
     async def login(self):
@@ -176,6 +180,7 @@ class NowPlayingSpotifyModule:
             # When the track started, from the data's own time: the same HTML while it plays on, so no redraw
             # ponytail: rounded to 2 s, so the bar can be off by a second; network jitter rarely crosses a step
             track["started"] = round((reply.fetched_at.timestamp() * 1000 - track["progress_ms"]) / 2000) * 2000
+        self.announce(track, error)
         if track and self.show["playlist"]:
             track["playlist"] = await self.playlist_name(track)
         message = None
@@ -184,6 +189,17 @@ class NowPlayingSpotifyModule:
                                      "Can't reach Spotify." if error == "offline" else "Couldn't update.")
         self.last_card = self.card(track, message, "cloud-off") if track or message else ""  # nothing plays: no card
         return self.last_card
+
+    def announce(self, track, error) -> None:
+        """A new track starts: tell the Heads-up module (a public message it listens to if the owner listed this
+        module). Not at the start, not for the same track playing on or resumed after a pause, not for nothing."""
+        key = (track["title"], track["artist"]) if track and track["title"] else None
+        if key and key != self.last_track and self.polled and self.heads_up and self.event_bus:
+            text = f"{key[0]} – {key[1]}" if key[1] else key[0]
+            self.event_bus.publish(f"{self.name}.heads_up", {"text": text}, public=True)
+        if key:
+            self.last_track = key
+        self.polled = self.polled or not error
 
     def wait_if_busy(self, answer) -> None:
         """A 429: no calls to Spotify for as long as its Retry-After says (seconds; 30 if missing or a date)."""

@@ -62,6 +62,12 @@
         ]
       }
     },
+    "heads_up": {
+      "type": "boolean",
+      "default": false,
+      "title": "Send a heads-up when a new track starts",
+      "description": "Needs the Heads-up module installed, with mirrordash_now_playing_spotify added under its \"Modules That May Send\". The track and artist then show large in the centre of the mirror."
+    },
     "show_progress": {
       "type": "boolean",
       "default": true,

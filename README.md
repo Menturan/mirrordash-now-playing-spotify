@@ -48,6 +48,13 @@ card says so), repeat steps 5 and 6.
 
 Podcast episodes show the podcast's name in place of the artist.
 
+## Heads-up when a new track starts
+
+Turn on **Send a heads-up when a new track starts** to have the track and artist shown large in the centre of the
+mirror by the [Heads-up module](https://github.com/Menturan/mirrordash-heads-up). It must be installed, with
+`mirrordash_now_playing_spotify` added under its **Modules That May Send**. Nothing is sent for what already plays when
+the module starts, for the same track playing on or resumed after a pause, or when nothing plays. Off by default.
+
 ## Develop
 
 ```bash
