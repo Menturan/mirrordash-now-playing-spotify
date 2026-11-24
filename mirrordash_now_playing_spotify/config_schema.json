@@ -17,7 +17,8 @@
       "format": "password",
       "default": "",
       "title": "Login Address",
-      "description": "After logging in through the address on the card, paste the address your browser landed on (http://127.0.0.1:8888/callback?code=…) here and save.",
+      "description": "After logging in through the address on the card, paste the address you landed on here and save.",
+      "help": "Paste the address your browser landed on (http://127.0.0.1:8888/callback?code=…).",
       "group": "Spotify Login"
     },
     "show_header": {
@@ -67,7 +68,8 @@
       "type": "boolean",
       "default": false,
       "title": "Send a heads-up when a new track starts",
-      "description": "Needs the Heads-up module installed, with mirrordash_now_playing_spotify added under its \"Modules That May Send\". The track and artist then show large in the centre of the mirror."
+      "description": "Also show the track and artist large in the centre of the mirror.",
+      "help": "Needs the Heads-up module installed, with mirrordash_now_playing_spotify added under its \"Modules That May Send\"."
     },
     "show_progress": {
       "type": "boolean",
