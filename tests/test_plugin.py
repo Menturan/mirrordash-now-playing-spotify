@@ -191,10 +191,10 @@ async def test_the_start_time_stays_the_same_while_it_plays_on(tmp_path):
 @pytest.mark.asyncio
 async def test_parts_can_be_turned_off(tmp_path):
     module = make_module(tmp_path, client_id="", show_cover=False, show_progress=False, show_album=False,
-                         show_device=False, show_header=False, show_title=False, show_playlist=False,
+                         show_device=False, show_title=False, show_playlist=False,
                          show_artist=False, cover_style="color")
     shown = await module.render()
-    assert not any(shown["show"].values()) and not shown["show_header"] and shown["cover_in_color"] is True
+    assert not any(shown["show"].values()) and shown["cover_in_color"] is True
 
 
 

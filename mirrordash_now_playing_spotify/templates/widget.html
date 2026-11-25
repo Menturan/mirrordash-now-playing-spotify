@@ -22,7 +22,7 @@
 
 <div class="flex-column">
     {% if show_header %}
-    <h2 class="module-header">{{ translations.get("title", "Now playing") }}</h2>
+    <h2 class="module-header">{{ heading or translations.get("title", "Now playing") }}</h2>
     {% endif %}
     {% if track %}
     <div class="now-playing">

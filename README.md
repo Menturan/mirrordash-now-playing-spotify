@@ -37,8 +37,7 @@ card says so), repeat steps 5 and 6.
 | :--- | :--- |
 | Client ID | Your Spotify app's Client ID (step 3). |
 | Login Address | The address you landed on after logging in (step 6). |
-| Update Interval | Seconds between asking Spotify what's playing (10). The bar moves every second in between. |
-| Show Header | The "Now playing" title. |
+| Update interval | Seconds between asking Spotify what's playing (10). The bar moves every second in between. |
 | Show Track / Artist / Album | Each line on its own; the first one shown is the big white one. |
 | Show Playlist | The playlist it plays from, or *Liked Songs*. Spotify's own playlists (Discover Weekly, …) can't be read by apps, so no line for those. |
 | Show Device | The speaker, phone or computer it plays on. |
@@ -52,7 +51,7 @@ Podcast episodes show the podcast's name in place of the artist.
 
 Turn on **Send a heads-up when a new track starts** to have the track and artist shown large in the centre of the
 mirror by the [Heads-up module](https://github.com/Menturan/mirrordash-heads-up). It must be installed, with
-`mirrordash_now_playing_spotify` added under its **Modules That May Send**. Nothing is sent for what already plays when
+`mirrordash_now_playing_spotify` added under its **Modules that may send**. Nothing is sent for what already plays when
 the module starts, for the same track playing on or resumed after a pause, or when nothing plays. Off by default.
 
 ## Develop

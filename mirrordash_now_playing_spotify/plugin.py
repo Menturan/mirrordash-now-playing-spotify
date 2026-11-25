@@ -88,7 +88,6 @@ class NowPlayingSpotifyModule:
         self.interval = config.get("interval", 10)
         self.client_id = config.get("client_id", "").strip()
         self.code = auth_code(config.get("auth_response", ""))
-        self.show_header = config.get("show_header", True)
         self.show = {part: config.get(f"show_{part}", True) for part in ("cover", "title", "artist", "album", "playlist", "device", "progress")}
         self.cover_in_color = config.get("cover_style", "gray") == "color"
         self.api_path = config.get("api_path", "")
@@ -227,7 +226,6 @@ class NowPlayingSpotifyModule:
 
     def card(self, track, message, icon, qr=None) -> str:
         return self.render_template("widget.html", track=track, message=message, icon=icon, qr=qr, show=self.show,
-                                    show_header=self.show_header,
                                     cover_in_color=self.cover_in_color)
 
     # ── Saving the login ── data_dir is kept and backed up

@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Now Playing on Spotify",
-  "requires_mirrordash": "0.13",
+  "title": "Now playing on Spotify",
+  "requires_mirrordash": "0.21",
   "description": "What's playing on your Spotify right now. The card hides when nothing plays.",
   "type": "object",
   "properties": {
@@ -16,33 +16,27 @@
       "type": "string",
       "format": "password",
       "default": "",
-      "title": "Login Address",
+      "title": "Login address",
       "description": "After logging in through the address on the card, paste the address you landed on here and save.",
       "help": "Paste the address your browser landed on (http://127.0.0.1:8888/callback?code=…).",
       "group": "Spotify Login"
     },
-    "show_header": {
-      "type": "boolean",
-      "default": true,
-      "title": "Show Header",
-      "description": "Show or hide the module's title."
-    },
     "show_title": {
       "type": "boolean",
       "default": true,
-      "title": "Show Track",
+      "title": "Show track",
       "description": "The track's (or episode's) name."
     },
     "show_artist": {
       "type": "boolean",
       "default": true,
-      "title": "Show Artist",
+      "title": "Show artist",
       "description": "The artist (or the podcast's name)."
     },
     "show_cover": {
       "type": "boolean",
       "default": true,
-      "title": "Show Cover",
+      "title": "Show cover",
       "description": "The album cover beside the track."
     },
     "cover_style": {
@@ -69,39 +63,39 @@
       "default": false,
       "title": "Send a heads-up when a new track starts",
       "description": "Also show the track and artist large in the centre of the mirror.",
-      "help": "Needs the Heads-up module installed, with mirrordash_now_playing_spotify added under its \"Modules That May Send\"."
+      "help": "Needs the Heads-up module installed, with mirrordash_now_playing_spotify added under its \"Modules that may send\"."
     },
     "show_progress": {
       "type": "boolean",
       "default": true,
-      "title": "Show Progress",
+      "title": "Show progress",
       "description": "A bar with how far into the track it is."
     },
     "show_album": {
       "type": "boolean",
       "default": true,
-      "title": "Show Album",
+      "title": "Show album",
       "description": "The album's name under the artist."
     },
     "show_playlist": {
       "type": "boolean",
       "default": true,
-      "title": "Show Playlist",
+      "title": "Show playlist",
       "description": "The playlist it plays from (or Liked Songs), when it plays from one."
     },
     "show_device": {
       "type": "boolean",
       "default": true,
-      "title": "Show Device",
+      "title": "Show device",
       "description": "Where it plays, e.g. a speaker or a phone."
     },
     "interval": {
       "type": "integer",
       "default": 10,
       "minimum": 5,
-      "title": "Update Interval (Seconds)",
+      "title": "Update interval",
       "description": "How often to ask Spotify what's playing.",
-      "group": "Advanced"
+      "unit": "s"
     }
   }
 }
